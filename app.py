@@ -1,17 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 import os
-import re
+import sys
 
-from hospital_multiagent import ask, reset, setup_all_databases, graph
-
-app = FastAPI(
-    title="Hospital Patient Journey System",
-    description="Multi-Agent Hospital Intelligence API",
-    version="1.0.0"
-)
+app = FastAPI(title="Hospital Patient Journey System", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,30 +15,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Setup databases on startup
-@app.on_event("startup")
-async def startup_event():
-    setup_all_databases()
+# ── Vercel uses /tmp for writable storage ─────────────────────
+os.environ["HOSPITAL_DB_DIR"] = "/tmp/hospital_databases"
 
-# Serve frontend
+# ── Lazy imports — don't crash on cold start ──────────────────
+_initialized = False
+
+def get_agent():
+    global _initialized
+    if not _initialized:
+        from hospital_multiagent import setup_all_databases
+        setup_all_databases()
+        _initialized = True
+    from hospital_multiagent import ask as _ask, reset as _reset
+    return _ask, _reset
+
+# ── Serve frontend ─────────────────────────────────────────────
 @app.get("/")
 async def serve_ui():
-    return FileResponse("index.html")
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
+    return JSONResponse({"status": "Hospital API running. index.html not found."})
 
-# ── API Routes ────────────────────────────────────────────────
-
-class QueryRequest(BaseModel):
-    query: str
-    patient_id: str = ""
-    remember: bool = True
-
-class ResetRequest(BaseModel):
-    pass
-
+# ── Health ─────────────────────────────────────────────────────
 @app.get("/api/health")
 async def health_check():
-    return {"status": "healthy", "version": "1.0.0"}
+    groq_set = bool(os.environ.get("GROQ_API_KEY"))
+    return {
+        "status": "healthy",
+        "groq_key_set": groq_set,
+        "db_dir": os.environ.get("HOSPITAL_DB_DIR"),
+        "tmp_writable": os.access("/tmp", os.W_OK),
+    }
 
+# ── Patients ───────────────────────────────────────────────────
 @app.get("/api/patients")
 async def get_patients():
     return {
@@ -60,11 +64,18 @@ async def get_patients():
         ]
     }
 
+# ── Query ──────────────────────────────────────────────────────
+class QueryRequest(BaseModel):
+    query: str
+    patient_id: str = ""
+    remember: bool = True
+
 @app.post("/api/query")
 async def query_patient(request: QueryRequest):
     try:
         if not request.query.strip():
             raise HTTPException(status_code=400, detail="Query cannot be empty")
+        ask, _ = get_agent()
         answer = ask(request.query, request.patient_id, request.remember)
         return {"status": "success", "answer": answer}
     except HTTPException:
@@ -72,14 +83,12 @@ async def query_patient(request: QueryRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ── Reset ──────────────────────────────────────────────────────
 @app.post("/api/reset")
 async def reset_conversation():
     try:
+        _, reset = get_agent()
         reset()
         return {"status": "success", "message": "Conversation reset"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
