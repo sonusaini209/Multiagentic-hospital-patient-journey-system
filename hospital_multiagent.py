@@ -26,7 +26,7 @@ DB_ADMITCORE  = os.path.join(DB_DIR, "db_admitcore.db")
 DB_LABTRACK   = os.path.join(DB_DIR, "db_labtrack.db")
 DB_PHARMAFLOW = os.path.join(DB_DIR, "db_pharmaflow.db")
 DB_BILLDESK   = os.path.join(DB_DIR, "db_billdesk.db")
-os.makedirs(DB_DIR, exist_ok=True)True)
+os.makedirs(DB_DIR, exist_ok=True)
 
 # LLM
 llm = ChatGroq(model=MODEL_NAME, temperature=0, api_key=GROQ_API_KEY)
@@ -730,4 +730,5 @@ graph = build_graph()
 # DEMO 4 — Fresh query, no history needed
 
 #ask("Show complete details for patient P003", remember=False)
+
 
