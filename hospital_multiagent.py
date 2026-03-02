@@ -1,19 +1,3 @@
-"""
-╔══════════════════════════════════════════════════════════════╗
-║     HOSPITAL PATIENT JOURNEY — MULTI-AGENT SYSTEM           ║
-║     Single File Implementation                               ║
-║                                                              ║
-║  Stack : LangGraph + LangChain + ChatGroq + SQLite           ║
-║  Pattern: Supervisor + 4 Parallel Sub-Agents                 ║
-║                                                              ║
-║  4 Databases (linked by PatientID):                          ║
-║    DB1 — AdmitCore   (Patients, Doctors, Admissions)         ║
-║    DB2 — LabTrack    (Tests, Orders, Results)                 ║
-║    DB3 — PharmaFlow  (Medicines, Prescriptions)              ║
-║    DB4 — BillDesk    (Bills, Insurance)                      ║
-╚══════════════════════════════════════════════════════════════╝
-"""
-
 import os
 import json
 import sqlite3
@@ -29,9 +13,8 @@ from langgraph.graph import StateGraph, START, END
 
 load_dotenv()
 
-# ──────────────────────────────────────────────────────────────
+
 # CONFIG
-# ──────────────────────────────────────────────────────────────
 load_dotenv()
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 MODEL_NAME   = "llama-3.3-70b-versatile"
@@ -44,15 +27,10 @@ DB_BILLDESK   = os.path.join(DB_DIR, "db_billdesk.db")
 
 os.makedirs(DB_DIR, exist_ok=True)
 
-# ──────────────────────────────────────────────────────────────
 # LLM
-# ──────────────────────────────────────────────────────────────
 llm = ChatGroq(model=MODEL_NAME, temperature=0, api_key=GROQ_API_KEY)
 
-
-# ══════════════════════════════════════════════════════════════
 # SECTION 1 — SHARED STATE
-# ══════════════════════════════════════════════════════════════
 class HospitalState(TypedDict):
     # Input
     query:      str
@@ -75,9 +53,7 @@ class HospitalState(TypedDict):
     chat_history: list[dict]
 
 
-# ══════════════════════════════════════════════════════════════
 # SECTION 2 — DATABASE SETUP & SYNTHETIC DATA
-# ══════════════════════════════════════════════════════════════
 def _rdate(start=30, end=0):
     d = random.randint(end, start)
     return (datetime.now() - timedelta(days=d)).strftime("%Y-%m-%d")
@@ -351,11 +327,7 @@ def setup_all_databases():
     setup_billdesk();   print("  ✅ BillDesk   — Bills, Insurance")
     print("  All 4 databases ready.\n")
 
-
-# ══════════════════════════════════════════════════════════════
 # SECTION 3 — SUPER AGENT (Router + Synthesizer)
-# ══════════════════════════════════════════════════════════════
-
 AGENT_DESCRIPTIONS = """
 You have 4 specialized sub-agents, each with their own isolated database:
 
@@ -483,11 +455,7 @@ def super_agent_synthesizer(state: HospitalState) -> dict:
 
     return {"final_answer": answer, "chat_history": history}
 
-
-# ══════════════════════════════════════════════════════════════
 # SECTION 4 — SUB-AGENTS (Text-to-SQL)
-# ══════════════════════════════════════════════════════════════
-
 def _run_sql(db_path: str, sql: str) -> list[dict]:
     try:
         conn = sqlite3.connect(db_path)
@@ -630,10 +598,7 @@ def billdesk_agent(state: HospitalState) -> dict:
     return {"billdesk_result": rows}
 
 
-# ══════════════════════════════════════════════════════════════
 # SECTION 5 — GRAPH ASSEMBLY
-# ══════════════════════════════════════════════════════════════
-
 def route_to_agents(state: HospitalState) -> list[str]:
     mapping = {
         "admitcore":  "admitcore_agent",
@@ -675,10 +640,7 @@ def build_graph():
 
     return g.compile()
 
-
-# ══════════════════════════════════════════════════════════════
 # SECTION 6 — RUNNER
-# ══════════════════════════════════════════════════════════════
 
 # Global conversation history — persists across calls in same session
 # This lets the system remember context like:
@@ -765,4 +727,5 @@ graph = build_graph()
 # ask("What is my pending bill?")   # ← no need to repeat P004, history remembers
 
 # DEMO 4 — Fresh query, no history needed
-ask("Show complete details for patient P003", remember=False)
+
+#ask("Show complete details for patient P003", remember=False)
