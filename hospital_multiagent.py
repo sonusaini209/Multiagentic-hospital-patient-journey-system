@@ -20,7 +20,6 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 MODEL_NAME   = "llama-3.3-70b-versatile"
 
 DB_DIR = os.environ.get(
-    "HOSPITAL_DB_DIR",
     os.path.join(os.path.dirname(__file__), "hospital_databases")
 )
 DB_ADMITCORE  = os.path.join(DB_DIR, "db_admitcore.db")
