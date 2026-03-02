@@ -1,4 +1,4 @@
-# 🏥 Multiagentic Hospital Patient Journey System
+#  Multiagentic Hospital Patient Journey System
 
 > AI-Powered Multi-Agent Hospital Intelligence Platform
 
@@ -13,53 +13,36 @@
 
 ## 🌐 Live Demo
 
-**[https://your-app.vercel.app](https://your-app.vercel.app)**
+**https://multiagentic-hospital-patient-journ.vercel.app/**
 
-> Replace with your actual Vercel URL after deploying.
+## 🛠️ Tech Stack
 
----
+| Layer | Technology |
+|---|---|
+| **LLM** | Groq — `llama-3.3-70b-versatile` |
+| **Agent Orchestration** | LangGraph |
+| **LLM Framework** | LangChain + langchain-groq |
+| **Backend** | FastAPI |
+| **Database** | SQLite (4 isolated DBs) |
+| **Frontend** | HTML + CSS + Vanilla JS |
+| **Deployment** | Vercel |
+| **Environment** | python-dotenv |
 
-## 🎯 Overview
 
-A multi-agent hospital intelligence system that lets patients and staff query the complete patient journey in natural language — from admission to discharge, lab results, prescriptions, and billing — all in one place.
+##  Features
 
-The system uses a **Super Agent** (orchestrator) powered by **Groq's llama-3.3-70b-versatile** that reads each query and decides which of the 4 specialized sub-agents to call. Each sub-agent has its own isolated SQLite database and uses **Text-to-SQL** to retrieve the relevant data. The results are then synthesized into a clear, human-readable response. Built with **LangGraph** for agent orchestration, **FastAPI** for the backend, and deployed on **Vercel**.
-
----
-
-## 🤖 Agent Architecture
-
-```
-User Query
-    ↓
-🧠 Super Agent (Router)
-    ↓ decides which agents are needed
-    ├── 📋 AdmitCore   → Patients, Doctors, Admissions
-    ├── 🧪 LabTrack    → Lab Tests, Orders, Results
-    ├── 💊 PharmaFlow  → Medicines, Prescriptions
-    └── 💰 BillDesk    → Bills, Insurance
-    ↓
-🧠 Super Agent (Synthesizer) → Final Answer
-```
-
-Each sub-agent only has access to its own database — they are completely isolated from each other. The Super Agent coordinates them and merges the results.
+-  **Super Agent Orchestrator** — reads the query, routes to the right agents, synthesizes the final answer
+-  **Natural Language Queries** — no forms, just ask in plain English
+-  **4 Isolated Databases** — AdmitCore, LabTrack, PharmaFlow, BillDesk
+-  **Text-to-SQL** — each agent generates its own SQL query on the fly
+-  **Critical Flag Detection** — highlights abnormal or critical lab findings
+-  **Conversation Memory** — follow-up questions work without repeating patient ID
+-  **Web UI** — clean chat interface with patient sidebar and quick queries
+-  **Vercel Deployment** — single FastAPI app serving both UI and API
 
 ---
 
-## ✨ Features
-
-- 🧠 **Super Agent Orchestrator** — reads the query, routes to the right agents, synthesizes the final answer
-- 💬 **Natural Language Queries** — no forms, just ask in plain English
-- 🗃️ **4 Isolated Databases** — AdmitCore, LabTrack, PharmaFlow, BillDesk
-- 🔍 **Text-to-SQL** — each agent generates its own SQL query on the fly
-- ⚠️ **Critical Flag Detection** — highlights abnormal or critical lab findings
-- 🔄 **Conversation Memory** — follow-up questions work without repeating patient ID
-- 🌐 **Web UI** — clean chat interface with patient sidebar and quick queries
-- 🚀 **Vercel Deployment** — single FastAPI app serving both UI and API
-
----
-
-## 🗄️ Database Structure
+##  Database Structure
 
 | Database | Tables | Contains |
 |---|---|---|
@@ -72,23 +55,23 @@ All 4 databases are auto-created with synthetic patient data on first run.
 
 ---
 
-## 🗂️ Project Structure
+##  Project Structure
 
 ```
 hospital-patient-journey/
 ├── hospital_multiagent.py   # All agents + LangGraph workflow + DB setup
-├── app.py                   # FastAPI backend — serves UI + API routes
+├── app.py                   # FastAPI backend 
 ├── index.html               # Frontend chat UI
 ├── requirements.txt         # Python dependencies
 ├── vercel.json              # Vercel deployment config
-├── .env                     # API keys — never commit this
+├── .env                     # API keys 
 ├── .gitignore               # Excludes .env
 └── README.md
 ```
 
 ---
 
-## 🔑 API Key Required
+##  API Key Required
 
 **Groq API** — [console.groq.com](https://console.groq.com)
 - Sign up for a free account
@@ -105,7 +88,7 @@ GROQ_API_KEY=gsk_your_groq_key_here
 
 ---
 
-## 💻 Run Locally
+##  Run Locally
 
 **Prerequisites:** Python 3.9+, pip
 
@@ -142,28 +125,6 @@ GROQ_API_KEY=gsk_your_groq_key_here
    ```
 
    Open [http://localhost:8000](http://localhost:8000) — databases are auto-created on first run.
-
----
-
-## 📡 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Serves the frontend UI |
-| `GET` | `/api/health` | Health check |
-| `GET` | `/api/patients` | List all patients |
-| `POST` | `/api/query` | Run a natural language query |
-| `POST` | `/api/reset` | Reset conversation history |
-
-### POST `/api/query`
-```json
-{
-  "query": "What are my lab results and current medicines?",
-  "patient_id": "P001",
-  "remember": true
-}
-```
-
 ---
 
 ## 💬 Example Queries
@@ -186,11 +147,7 @@ Q: "Is my insurance still active?"  ← still remembers P005
 
 ---
 
-## 📝 License
+##  License
 
 MIT — see [LICENSE](./LICENSE) for details.
 
-
-⭐ Star this repo if you found it useful!
-
-</div>
